@@ -3,7 +3,7 @@ import scipy.optimize as sp
 import matplotlib.pyplot as plt
 import csv
 import pandas as pd
-
+plt.style.use("classic")
 
 class Spectre():
     """
@@ -72,12 +72,16 @@ class Spectre():
             _color (str, optional): Couleur des marqueurs. Defaults to "r".
             fits (bool, optional): Option d'afficher ou non les fits gaussien sur le spectre. Defaults to False.
         """
-        plt.scatter(self.xdata, self.ydata, s=_ms, c=_color, marker=_mk)
+        fig, ax = plt.subplots(1, 1)
+        fig.patch.set_facecolor('white')
+        fig.patch.set_alpha(0.6)
+        ax.scatter(self.xdata, self.ydata, s=_ms, c=_color, marker=_mk)
+        ax.set_xlim(-100, 4200)
         if fits:
             for roi in self.rois_infos:
                 start, stop = roi[0][0], roi[0][1]
                 xdata = self.get_xdata(start, stop)
-                plt.plot(xdata, roi[3])
+                ax.plot(xdata, roi[3])
         plt.show()
             
     def compute_fit(self, func, roi1, roi2, show=False):
@@ -92,7 +96,7 @@ class Spectre():
         Returns:
             tuple: Les paramètress optimaux du fit, la covariance de ceux-ci et les données fités.
         """
-        popt, pcov = sp.curve_fit(func, self.xdata[roi1:roi2], self.ydata[roi1:roi2], p0=[100, (roi2+roi1)/2, (roi2-roi1)/2, 0])
+        popt, pcov = sp.curve_fit(func, self.xdata[roi1:roi2], self.ydata[roi1:roi2], p0=[500, (roi2+roi1)/2, (roi2-roi1)/2, 0])
         fit_data = func(self.xdata[roi1:roi2], *popt)
         if show:
             fig, ax = plt.subplots()
@@ -102,7 +106,7 @@ class Spectre():
             plt.show()
         return popt, pcov, fit_data
 
-    def plot_peaks(self, multiple=True, fits=False):
+    def plot_peaks(self, labels, multiple=True, fits=False):
         """Affiches les ROIs.
 
         Args:
@@ -111,23 +115,40 @@ class Spectre():
         """
         if multiple:
             fig, axs = plt.subplots(ncols=self.nb_rois, nrows=1)
+            fig.patch.set_facecolor('white')
+            fig.patch.set_alpha(0.6)
             for roi in range(self.nb_rois):
                 start, stop = self.rois_infos[roi][0][0], self.rois_infos[roi][0][1]
                 xdata = self.get_xdata(start, stop)
-                axs[roi].scatter(xdata, self.ydata[start: stop], s=0.5, marker="o", c="red")
+                # axs[roi].set_title(labels[roi])
+                axs[roi].set_ylabel("Comptes (-)")
+                axs[roi].set_xlabel("Canaux (-)")
+                axs[roi].legend()
+                axs[roi].scatter(xdata, self.ydata[start: stop], s=0.5, marker="o", c="red", label = "Données expérimentales")
                 if fits:
+                    axs[roi].text(0.75, 0.75, f"$\mu$ = {self.rois_infos[roi][1][1]}", transform=ax.transAxes)
+                    axs[roi].text(f"$\sigma$ = {self.rois_infos[roi][1][2]}")
                     ydata = self.rois_infos[roi][3]
-                    axs[roi].plot(xdata, ydata, color="blue")
+                    axs[roi].set_label("Lissage gaussien")
+                    axs[roi].plot(xdata, ydata, color="blue", label = "Lissage gaussien")
             plt.show()
         else:
             for roi in range(self.nb_rois):
                 fig, ax = plt.subplots()
+                fig.patch.set_facecolor('white')
+                fig.patch.set_alpha(0.6)
                 start, stop = self.rois_infos[roi][0][0], self.rois_infos[roi][0][1]
                 xdata = self.get_xdata(start, stop)
-                ax.scatter(xdata, self.ydata[start: stop], s=0.5, marker="o", c="red")
+                # ax.set_title(labels[roi])
+                ax.set_ylabel("Comptes (-)")
+                ax.set_xlabel("Canaux (-)")
+                ax.scatter(xdata, self.ydata[start: stop], s=0.5, marker="o", c="red", label="Données expérimentales")
                 if fits:
                     ydata = self.rois_infos[roi][3]
-                    ax.plot(xdata, ydata, color="blue")
+                    ax.text(0.75, 0.90, f"$\mu$ = {self.rois_infos[roi][1][1]:.2f}", transform=ax.transAxes)
+                    ax.text(0.75, 0.85, f"$\sigma$ = {self.rois_infos[roi][1][2]:.2f}", transform=ax.transAxes)
+                    ax.plot(xdata, ydata, color="blue", label="Lissage gaussien")
+                ax.legend(loc="lower center")
                 plt.show()
         
     def get_xdata(self, init, stop):
