@@ -25,3 +25,7 @@ Méthodes:
 ## Étalonnage
 
 Le fichier utilitaire.py contient une fonction qui calcule un étalonnage avec un spectre contenant les photopics de plusieurs sources radioactives.
+
+## Correlation angulaire et temporelle
+
+Les fichier correlation_angulaire.py et correlation_temporelle.py ne sont pas complets mais permettent d'analyser les données de correlation angulaire et temporelle de l'expérience d'annihilation gamma-gamma
